@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="oRIlo www0abdb-oss File oporu - GitHub File Explorer">
+  <title>oRIlo File Explorer</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand"><div class="brand-icon">O</div><div><b>oRIlo</b><small>www0abdb-oss File oporu</small></div></div>
+  <div class="actions">
+    <button id="theme" title="Dark mode">☾</button>
+    <button id="layout" title="Switch view">☷</button>
+    <button id="menu" class="mobile">☰</button>
+  </div>
+</header>
+
+<div class="app">
+  <aside id="sidebar">
+    <div class="side-label">FILE EXPLORER</div>
+    <button class="nav active" data-type="all">🏠 <span>All files</span><em id="c-all">0</em></button>
+    <button class="nav" data-type="pdf">📕 <span>PDF</span><em id="c-pdf">0</em></button>
+    <button class="nav" data-type="docx">📘 <span>Documents</span><em id="c-docx">0</em></button>
+    <button class="nav" data-type="archive">📦 <span>Archives</span><em id="c-archive">0</em></button>
+    <button class="nav" data-type="image">🖼️ <span>Images</span><em id="c-image">0</em></button>
+    <button class="nav" data-type="video">🎬 <span>Videos</span><em id="c-video">0</em></button>
+    <button class="nav" data-type="audio">🎵 <span>Audio</span><em id="c-audio">0</em></button>
+    <div class="line"></div>
+    <button class="nav" data-type="recent">🕘 <span>Recent</span></button>
+    <a class="nav github" href="https://github.com/kaderlaib19-alt/kaderlaib19-alt.github.io" target="_blank">↗ <span>Open GitHub</span></a>
+  </aside>
+
+  <main>
+    <div class="crumb">GitHub <b>›</b> kaderlaib19-alt.github.io</div>
+
+    <div class="toolbar">
+      <div class="search">🔎 <input id="search" placeholder="Search files..." autocomplete="off"><button id="clear">×</button></div>
+      <select id="sort">
+        <option value="name">Name</option>
+        <option value="size">Size</option>
+        <option value="date">Updated</option>
+        <option value="type">Type</option>
+      </select>
+    </div>
+
+    <section class="hero">
+      <div><span>GITHUB FILE EXPLORER</span><h1>Your files, organized.</h1><p>Live file data loaded from the public GitHub repository.</p></div>
+      <div class="folder">📂</div>
+    </section>
+
+    <div class="heading">
+      <div><h2 id="title">All files</h2><small id="status">Loading...</small></div>
+      <div><button class="view active" id="grid">▦ Grid</button><button class="view" id="list">☷ List</button></div>
+    </div>
+
+    <div id="files" class="grid"></div>
+    <div id="empty" class="empty"><div>📂</div><h3>No files found</h3><p>Try another search or category.</p></div>
+    <div id="error" class="error" hidden><b>Could not load the GitHub repository.</b><span>Check your internet connection or repository visibility.</span><button onclick="loadFiles()">Retry</button></div>
+  </main>
+</div>
+<footer><span>oRIlo www0abdb-oss File oporu</span><span id="repoInfo">GitHub</span></footer>
+<script src="script.js"></script>
+</body>
+</html>
