@@ -43,7 +43,7 @@ function typeOf(path){
   return "other";
 }
 function iconFor(type){
-  return {image:"▧",document:"▤",video:"▶",audio:"♫",archive:"▱",other:"□"}[type] || "□";
+  return {image:"🖼",document:"▤",video:"▶",audio:"♫",archive:"▱",other:"□"}[type] || "□";
 }
 function formatBytes(n){
   if(!n || n < 0) return "";
@@ -129,7 +129,7 @@ function render(){
       img.loading="lazy";
       img.alt=f.path;
       img.src=rawUrl(f.path);
-      img.onerror=()=>{thumb.innerHTML=`<div class="file-icon">▧</div>`};
+      img.onerror=()=>{thumb.innerHTML=`<div class="file-icon">🖼</div>`};
       thumb.appendChild(img);
     }else{
       const ico=document.createElement("div");
