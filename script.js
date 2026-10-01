@@ -1,1045 +1,688 @@
-/*
-    REAL GITHUB FILE EXPLORER
-
-    Repository:
-
-    https://github.com/kaderlaib19-alt/m3allKanfor
-*/
-
-
 const OWNER = "kaderlaib19-alt";
-
 const REPOSITORY = "m3allKanfor";
 
-
-const API_URL =
-  `https://api.github.com/repos/${OWNER}/${REPOSITORY}/contents/`;
-
+const API_BASE = `https://api.github.com/repos/${OWNER}/${REPOSITORY}`;
 
 let allFiles = [];
-
 let currentFilter = "all";
-
-let listMode = false;
-
-
-/*
-    File type detection
-*/
+let currentView = "grid";
 
 const fileTypes = {
+    pdf: {
+        category: "pdf",
+        icon: "📕",
+        label: "PDF"
+    },
 
-  pdf: {
-    category: "pdf",
-    icon: "📕"
-  },
+    doc: {
+        category: "documents",
+        icon: "📘",
+        label: "DOC"
+    },
 
-  doc: {
-    category: "docx",
-    icon: "📘"
-  },
+    docx: {
+        category: "documents",
+        icon: "📘",
+        label: "DOCX"
+    },
 
-  docx: {
-    category: "docx",
-    icon: "📘"
-  },
+    txt: {
+        category: "documents",
+        icon: "📄",
+        label: "TXT"
+    },
 
-  rar: {
-    category: "archive",
-    icon: "📦"
-  },
+    rtf: {
+        category: "documents",
+        icon: "📄",
+        label: "RTF"
+    },
 
-  zip: {
-    category: "archive",
-    icon: "📦"
-  },
+    zip: {
+        category: "archives",
+        icon: "📦",
+        label: "ZIP"
+    },
 
-  "7z": {
-    category: "archive",
-    icon: "📦"
-  },
+    rar: {
+        category: "archives",
+        icon: "📦",
+        label: "RAR"
+    },
 
-  tar: {
-    category: "archive",
-    icon: "📦"
-  },
+    "7z": {
+        category: "archives",
+        icon: "📦",
+        label: "7Z"
+    },
 
-  gz: {
-    category: "archive",
-    icon: "📦"
-  },
+    tar: {
+        category: "archives",
+        icon: "📦",
+        label: "TAR"
+    },
 
-  jpg: {
-    category: "image",
-    icon: "🖼️"
-  },
+    gz: {
+        category: "archives",
+        icon: "📦",
+        label: "GZ"
+    },
 
-  jpeg: {
-    category: "image",
-    icon: "🖼️"
-  },
+    jpg: {
+        category: "images",
+        icon: "🖼️",
+        label: "JPG"
+    },
 
-  png: {
-    category: "image",
-    icon: "🖼️"
-  },
+    jpeg: {
+        category: "images",
+        icon: "🖼️",
+        label: "JPEG"
+    },
 
-  gif: {
-    category: "image",
-    icon: "🖼️"
-  },
+    png: {
+        category: "images",
+        icon: "🖼️",
+        label: "PNG"
+    },
 
-  webp: {
-    category: "image",
-    icon: "🖼️"
-  },
+    gif: {
+        category: "images",
+        icon: "🖼️",
+        label: "GIF"
+    },
 
-  svg: {
-    category: "image",
-    icon: "🖼️"
-  },
+    webp: {
+        category: "images",
+        icon: "🖼️",
+        label: "WEBP"
+    },
 
-  mp4: {
-    category: "video",
-    icon: "🎬"
-  },
+    svg: {
+        category: "images",
+        icon: "🖼️",
+        label: "SVG"
+    },
 
-  mkv: {
-    category: "video",
-    icon: "🎬"
-  },
+    mp4: {
+        category: "videos",
+        icon: "🎬",
+        label: "MP4"
+    },
 
-  webm: {
-    category: "video",
-    icon: "🎬"
-  },
+    mkv: {
+        category: "videos",
+        icon: "🎬",
+        label: "MKV"
+    },
 
-  avi: {
-    category: "video",
-    icon: "🎬"
-  },
+    avi: {
+        category: "videos",
+        icon: "🎬",
+        label: "AVI"
+    },
 
-  mov: {
-    category: "video",
-    icon: "🎬"
-  },
+    mov: {
+        category: "videos",
+        icon: "🎬",
+        label: "MOV"
+    },
 
-  mp3: {
-    category: "audio",
-    icon: "🎵"
-  },
+    webm: {
+        category: "videos",
+        icon: "🎬",
+        label: "WEBM"
+    },
 
-  wav: {
-    category: "audio",
-    icon: "🎵"
-  },
+    mp3: {
+        category: "audio",
+        icon: "🎵",
+        label: "MP3"
+    },
 
-  ogg: {
-    category: "audio",
-    icon: "🎵"
-  },
+    wav: {
+        category: "audio",
+        icon: "🎵",
+        label: "WAV"
+    },
 
-  m4a: {
-    category: "audio",
-    icon: "🎵"
-  },
+    ogg: {
+        category: "audio",
+        icon: "🎵",
+        label: "OGG"
+    },
 
-  flac: {
-    category: "audio",
-    icon: "🎵"
-  }
+    m4a: {
+        category: "audio",
+        icon: "🎵",
+        label: "M4A"
+    },
 
+    flac: {
+        category: "audio",
+        icon: "🎵",
+        label: "FLAC"
+    }
 };
 
 
-/*
-    Get extension
-*/
+// ==============================
+// DOM
+// ==============================
+
+const filesContainer = document.getElementById("filesContainer");
+const emptyMessage = document.getElementById("emptyMessage");
+const errorMessage = document.getElementById("errorMessage");
+
+const searchInput = document.getElementById("searchInput");
+const sortSelect = document.getElementById("sortSelect");
+
+
+// ==============================
+// Helpers
+// ==============================
+
+function escapeHTML(value) {
+    return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}
+
 
 function getExtension(filename) {
+    const parts = filename.toLowerCase().split(".");
 
-  const parts =
-    filename
-      .toLowerCase()
-      .split(".");
+    if (parts.length < 2) {
+        return "";
+    }
 
-  return parts.length > 1
-    ? parts.pop()
-    : "";
-
+    return parts.pop();
 }
 
 
-/*
-    Get file type
-*/
+function getFileInfo(filename) {
+    const extension = getExtension(filename);
 
-function getFileType(filename) {
-
-  const extension =
-    getExtension(filename);
-
-  return fileTypes[extension] || {
-
-    category: "file",
-
-    icon: "📄"
-
-  };
-
+    return fileTypes[extension] || {
+        category: "other",
+        icon: "📄",
+        label: extension ? extension.toUpperCase() : "FILE"
+    };
 }
 
-
-/*
-    Format file size
-*/
 
 function formatSize(bytes) {
+    if (!bytes || bytes <= 0) {
+        return "Unknown size";
+    }
 
-  if (!bytes) {
+    const units = ["B", "KB", "MB", "GB", "TB"];
 
-    return "Unknown size";
+    let size = bytes;
+    let index = 0;
 
-  }
+    while (size >= 1024 && index < units.length - 1) {
+        size /= 1024;
+        index++;
+    }
 
-
-  const units = [
-    "Bytes",
-    "KB",
-    "MB",
-    "GB"
-  ];
-
-
-  let size = bytes;
-
-  let unit = 0;
-
-
-  while (
-    size >= 1024 &&
-    unit < units.length - 1
-  ) {
-
-    size /= 1024;
-
-    unit++;
-
-  }
-
-
-  if (unit === 0) {
-
-    return `${size} ${units[unit]}`;
-
-  }
-
-
-  return `${size.toFixed(1)} ${units[unit]}`;
-
+    return `${size.toFixed(index === 0 ? 0 : 2)} ${units[index]}`;
 }
 
 
-/*
-    Escape HTML
-*/
+function getRawURL(path, branch) {
+    const encodedPath = path
+        .split("/")
+        .map(part => encodeURIComponent(part))
+        .join("/");
 
-function escapeHTML(text) {
-
-  return text.replace(
-    /[&<>"']/g,
-    character => {
-
-      const map = {
-
-        "&": "&amp;",
-
-        "<": "&lt;",
-
-        ">": "&gt;",
-
-        '"': "&quot;",
-
-        "'": "&#039;"
-
-      };
-
-      return map[character];
-
-    }
-  );
-
+    return `https://raw.githubusercontent.com/${OWNER}/${REPOSITORY}/${encodeURIComponent(branch)}/${encodedPath}`;
 }
 
 
-/*
-    Get all files from GitHub
+function getGitHubURL(path, branch) {
+    const encodedPath = path
+        .split("/")
+        .map(part => encodeURIComponent(part))
+        .join("/");
 
-    This also enters folders recursively.
-*/
-
-async function getFiles(url) {
-
-  const response =
-    await fetch(url);
+    return `https://github.com/${OWNER}/${REPOSITORY}/blob/${encodeURIComponent(branch)}/${encodedPath}`;
+}
 
 
-  if (!response.ok) {
+// ==============================
+// Loading
+// ==============================
 
-    throw new Error(
-      `GitHub API Error: ${response.status}`
-    );
+function showLoading() {
+    filesContainer.innerHTML = `
+        <div class="loading-box">
+            <div class="loader"></div>
+            <p>Loading files from GitHub...</p>
+        </div>
+    `;
 
-  }
-
-
-  const items =
-    await response.json();
-
-
-  let result = [];
-
-
-  for (const item of items) {
-
-    if (item.type === "file") {
-
-      result.push(item);
-
+    if (emptyMessage) {
+        emptyMessage.style.display = "none";
     }
 
+    if (errorMessage) {
+        errorMessage.style.display = "none";
+    }
+}
 
-    else if (item.type === "dir") {
 
-      try {
+function showError(message) {
+    filesContainer.innerHTML = "";
 
-        const folderFiles =
-          await getFiles(item.url);
+    if (emptyMessage) {
+        emptyMessage.style.display = "none";
+    }
 
-        result =
-          result.concat(folderFiles);
+    if (errorMessage) {
+        errorMessage.style.display = "block";
+        errorMessage.innerHTML = `
+            <div class="error-box">
+                <h3>Unable to load files</h3>
+                <p>${escapeHTML(message)}</p>
+                <button onclick="loadRepository()">Try Again</button>
+            </div>
+        `;
+    }
+}
 
-      }
 
-      catch (error) {
+// ==============================
+// GitHub API
+// ==============================
 
-        console.warn(
-          "Folder skipped:",
-          item.path
+async function githubRequest(url) {
+    const response = await fetch(url, {
+        method: "GET",
+        headers: {
+            "Accept": "application/vnd.github+json"
+        },
+        cache: "no-store"
+    });
+
+    if (!response.ok) {
+        let details = "";
+
+        try {
+            const data = await response.json();
+
+            if (data && data.message) {
+                details = data.message;
+            }
+        } catch (e) {
+            // Ignore JSON error
+        }
+
+        throw new Error(
+            `GitHub API error ${response.status}${details ? ": " + details : ""}`
         );
-
-      }
-
     }
 
-  }
-
-
-  return result;
-
+    return response.json();
 }
 
-
-/*
-    Load repository
-*/
 
 async function loadRepository() {
+    showLoading();
 
-  const container =
-    document.getElementById(
-      "filesContainer"
-    );
+    try {
+        // 1. Get repository information
+        const repository = await githubRequest(API_BASE);
 
+        const branch = repository.default_branch || "main";
 
-  const status =
-    document.getElementById(
-      "fileStatus"
-    );
+        console.log("Repository:", repository.full_name);
+        console.log("Branch:", branch);
 
+        // 2. Get complete repository tree
+        const treeURL =
+            `${API_BASE}/git/trees/${encodeURIComponent(branch)}?recursive=1`;
 
-  const error =
-    document.getElementById(
-      "errorMessage"
-    );
+        const treeData = await githubRequest(treeURL);
 
+        if (!treeData || !Array.isArray(treeData.tree)) {
+            throw new Error("GitHub returned an invalid file tree.");
+        }
 
-  error.hidden = true;
+        // 3. Keep files only
+        allFiles = treeData.tree
+            .filter(item => item.type === "blob")
+            .map(item => {
+                const name = item.path.split("/").pop();
 
+                const info = getFileInfo(name);
 
-  container.innerHTML = "";
+                return {
+                    name: name,
+                    path: item.path,
+                    size: item.size || 0,
+                    category: info.category,
+                    icon: info.icon,
+                    type: info.label,
+                    branch: branch,
+                    url: getGitHubURL(item.path, branch),
+                    raw: getRawURL(item.path, branch)
+                };
+            });
 
+        console.log(`Loaded ${allFiles.length} files`);
 
-  status.textContent =
-    "Loading real GitHub files...";
+        if (allFiles.length === 0) {
+            filesContainer.innerHTML = "";
 
+            if (emptyMessage) {
+                emptyMessage.style.display = "block";
+            }
 
-  try {
+            return;
+        }
 
-    allFiles =
-      await getFiles(API_URL);
+        if (errorMessage) {
+            errorMessage.style.display = "none";
+        }
 
+        renderFiles();
 
-    updateCounters();
+    } catch (error) {
+        console.error("GitHub loading error:", error);
 
-    renderFiles();
-
-  }
-
-  catch (errorObject) {
-
-    console.error(
-      errorObject
-    );
-
-
-    error.hidden = false;
-
-    status.textContent =
-      "Failed to load repository.";
-
-  }
-
-}
-
-
-/*
-    Update sidebar counters
-*/
-
-function updateCounters() {
-
-  const counters = {
-
-    all: allFiles.length,
-
-    pdf: 0,
-
-    docx: 0,
-
-    archive: 0,
-
-    image: 0,
-
-    video: 0,
-
-    audio: 0
-
-  };
-
-
-  allFiles.forEach(file => {
-
-    const type =
-      getFileType(file.name);
-
-
-    if (
-      counters[type.category]
-      !== undefined
-    ) {
-
-      counters[type.category]++;
-
+        showError(
+            error.message ||
+            "An unknown error occurred while loading the GitHub repository."
+        );
     }
-
-  });
-
-
-  document.getElementById(
-    "allCount"
-  ).textContent =
-    counters.all;
-
-
-  document.getElementById(
-    "pdfCount"
-  ).textContent =
-    counters.pdf;
-
-
-  document.getElementById(
-    "docxCount"
-  ).textContent =
-    counters.docx;
-
-
-  document.getElementById(
-    "archiveCount"
-  ).textContent =
-    counters.archive;
-
-
-  document.getElementById(
-    "imageCount"
-  ).textContent =
-    counters.image;
-
-
-  document.getElementById(
-    "videoCount"
-  ).textContent =
-    counters.video;
-
-
-  document.getElementById(
-    "audioCount"
-  ).textContent =
-    counters.audio;
-
 }
 
 
-/*
-    Render files
-*/
+// ==============================
+// Rendering
+// ==============================
 
 function renderFiles() {
+    const searchText =
+        searchInput?.value.trim().toLowerCase() || "";
 
-  const container =
-    document.getElementById(
-      "filesContainer"
-    );
+    let files = [...allFiles];
 
+    // Category
+    if (currentFilter !== "all" && currentFilter !== "recent") {
+        files = files.filter(file => {
+            return file.category === currentFilter;
+        });
+    }
 
-  const empty =
-    document.getElementById(
-      "emptyMessage"
-    );
+    // Search
+    if (searchText) {
+        files = files.filter(file => {
+            return (
+                file.name.toLowerCase().includes(searchText) ||
+                file.path.toLowerCase().includes(searchText) ||
+                file.type.toLowerCase().includes(searchText)
+            );
+        });
+    }
 
+    // Sort
+    const sortValue = sortSelect?.value || "name";
 
-  const search =
-    document.getElementById(
-      "searchInput"
-    );
-
-
-  const status =
-    document.getElementById(
-      "fileStatus"
-    );
-
-
-  const query =
-    search.value
-      .trim()
-      .toLowerCase();
-
-
-  let files =
-    allFiles.filter(file => {
-
-      const type =
-        getFileType(file.name);
-
-
-      const filterMatch =
-        currentFilter === "all" ||
-
-        type.category ===
-          currentFilter ||
-
-        (
-          currentFilter === "recent"
-          &&
-          file.name
+    if (sortValue === "name") {
+        files.sort((a, b) =>
+            a.name.localeCompare(b.name, undefined, {
+                numeric: true,
+                sensitivity: "base"
+            })
         );
+    }
+
+    if (sortValue === "size") {
+        files.sort((a, b) => b.size - a.size);
+    }
+
+    if (sortValue === "type") {
+        files.sort((a, b) =>
+            a.type.localeCompare(b.type) ||
+            a.name.localeCompare(b.name)
+        );
+    }
+
+    if (files.length === 0) {
+        filesContainer.innerHTML = "";
+
+        if (emptyMessage) {
+            emptyMessage.style.display = "block";
+            emptyMessage.innerHTML = `
+                <div class="empty-box">
+                    <div class="empty-icon">📂</div>
+                    <h3>No files found</h3>
+                    <p>There are no files matching your search or filter.</p>
+                </div>
+            `;
+        }
+
+        return;
+    }
+
+    if (emptyMessage) {
+        emptyMessage.style.display = "none";
+    }
+
+    filesContainer.className =
+        currentView === "list"
+            ? "files-container list-view"
+            : "files-container grid-view";
+
+    filesContainer.innerHTML = files
+        .map(file => createFileCard(file))
+        .join("");
+}
 
 
-      const searchMatch =
-        !query ||
+function createFileCard(file) {
+    const safeName = escapeHTML(file.name);
+    const safePath = escapeHTML(file.path);
+    const safeType = escapeHTML(file.type);
+    const safeSize = escapeHTML(formatSize(file.size));
 
-        file.name
-          .toLowerCase()
-          .includes(query);
+    return `
+        <article class="file-card" data-category="${file.category}">
+
+            <div class="file-icon">
+                ${file.icon}
+            </div>
+
+            <div class="file-info">
+
+                <h3 title="${safeName}">
+                    ${safeName}
+                </h3>
+
+                <p class="file-path" title="${safePath}">
+                    ${safePath}
+                </p>
+
+                <div class="file-meta">
+                    <span>${safeType}</span>
+                    <span>${safeSize}</span>
+                </div>
+
+            </div>
+
+            <div class="file-actions">
+
+                <a
+                    class="open-button"
+                    href="${file.url}"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    Open
+                </a>
+
+                <a
+                    class="download-button"
+                    href="${file.raw}"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    View
+                </a>
+
+            </div>
+
+        </article>
+    `;
+}
 
 
-      return (
-        filterMatch &&
-        searchMatch
-      );
+// ==============================
+// Filters
+// ==============================
+
+function setFilter(filter) {
+    currentFilter = filter;
+
+    document
+        .querySelectorAll("[data-filter]")
+        .forEach(button => {
+            button.classList.toggle(
+                "active",
+                button.dataset.filter === filter
+            );
+        });
+
+    renderFiles();
+}
+
+
+document
+    .querySelectorAll("[data-filter]")
+    .forEach(button => {
+        button.addEventListener("click", () => {
+            setFilter(button.dataset.filter);
+        });
+    });
+
+
+// ==============================
+// Search
+// ==============================
+
+if (searchInput) {
+    searchInput.addEventListener("input", () => {
+        renderFiles();
+    });
+}
+
+
+// ==============================
+// Sort
+// ==============================
+
+if (sortSelect) {
+    sortSelect.addEventListener("change", () => {
+        renderFiles();
+    });
+}
+
+
+// ==============================
+// View mode
+// ==============================
+
+document
+    .querySelectorAll("[data-view]")
+    .forEach(button => {
+
+        button.addEventListener("click", () => {
+
+            currentView = button.dataset.view;
+
+            document
+                .querySelectorAll("[data-view]")
+                .forEach(item => {
+                    item.classList.toggle(
+                        "active",
+                        item.dataset.view === currentView
+                    );
+                });
+
+            renderFiles();
+        });
 
     });
 
 
-  /*
-      Sorting
-  */
+// ==============================
+// Clear search
+// ==============================
 
-  const sort =
-    document.getElementById(
-      "sortSelect"
-    ).value;
+const clearSearch = document.getElementById("clearSearch");
 
+if (clearSearch) {
+    clearSearch.addEventListener("click", () => {
 
-  if (sort === "name") {
-
-    files.sort(
-      (a,b) =>
-        a.name.localeCompare(
-          b.name
-        )
-    );
-
-  }
-
-
-  if (sort === "size") {
-
-    files.sort(
-      (a,b) =>
-        (b.size || 0) -
-        (a.size || 0)
-    );
-
-  }
-
-
-  if (sort === "type") {
-
-    files.sort(
-      (a,b) => {
-
-        const typeA =
-          getFileType(a.name)
-            .category;
-
-        const typeB =
-          getFileType(b.name)
-            .category;
-
-        return typeA.localeCompare(
-          typeB
-        );
-
-      }
-    );
-
-  }
-
-
-  /*
-      Update title
-  */
-
-  const titles = {
-
-    all: "All Files",
-
-    pdf: "PDF",
-
-    docx: "Documents",
-
-    archive: "Archives",
-
-    image: "Images",
-
-    video: "Videos",
-
-    audio: "Audio",
-
-    recent: "Recent"
-
-  };
-
-
-  document.getElementById(
-    "sectionTitle"
-  ).textContent =
-    titles[currentFilter];
-
-
-  status.textContent =
-    `${files.length} file(s) • Live GitHub data`;
-
-
-  /*
-      Grid/List
-  */
-
-  container.className =
-    listMode
-      ? "files-list"
-      : "files-grid";
-
-
-  /*
-      No files
-  */
-
-  if (!files.length) {
-
-    container.innerHTML = "";
-
-    empty.style.display =
-      "block";
-
-    return;
-
-  }
-
-
-  empty.style.display =
-    "none";
-
-
-  /*
-      Create cards
-  */
-
-  container.innerHTML =
-    files.map(file => {
-
-      const type =
-        getFileType(
-          file.name
-        );
-
-
-      const safeName =
-        escapeHTML(
-          file.name
-        );
-
-
-      const size =
-        formatSize(
-          file.size
-        );
-
-
-      return `
-
-        <article class="file-card">
-
-          <div
-            class="file-icon icon-${type.category}">
-            ${type.icon}
-          </div>
-
-
-          <div>
-
-            <div
-              class="file-name"
-              title="${safeName}">
-
-              ${safeName}
-
-            </div>
-
-
-            <div class="file-meta">
-
-              ${size}
-              •
-              ${type.category.toUpperCase()}
-
-            </div>
-
-          </div>
-
-
-          <div class="file-bottom">
-
-            <span class="file-type">
-
-              ${type.category.toUpperCase()}
-
-            </span>
-
-
-            <a
-              class="open-file"
-              href="${file.html_url}"
-              target="_blank"
-              rel="noopener">
-
-              Open
-
-            </a>
-
-          </div>
-
-        </article>
-
-      `;
-
-    }).join("");
-
-}
-
-
-/*
-    Sidebar
-*/
-
-document
-  .querySelectorAll(
-    ".nav[data-type]"
-  )
-  .forEach(button => {
-
-    button.addEventListener(
-      "click",
-      () => {
-
-        document
-          .querySelectorAll(
-            ".nav"
-          )
-          .forEach(item =>
-            item.classList
-              .remove("active")
-          );
-
-
-        button.classList
-          .add("active");
-
-
-        currentFilter =
-          button.dataset.type;
-
+        if (searchInput) {
+            searchInput.value = "";
+        }
 
         renderFiles();
-
-
-        document
-          .getElementById(
-            "sidebar"
-          )
-          .classList
-          .remove("open");
-
-      }
-    );
-
-  });
-
-
-/*
-    Search
-*/
-
-document
-  .getElementById(
-    "searchInput"
-  )
-  .addEventListener(
-    "input",
-    renderFiles
-  );
-
-
-/*
-    Clear search
-*/
-
-document
-  .getElementById(
-    "clearSearch"
-  )
-  .addEventListener(
-    "click",
-    () => {
-
-      document
-        .getElementById(
-          "searchInput"
-        ).value = "";
-
-
-      renderFiles();
-
-    }
-  );
-
-
-/*
-    Sort
-*/
-
-document
-  .getElementById(
-    "sortSelect"
-  )
-  .addEventListener(
-    "change",
-    renderFiles
-  );
-
-
-/*
-    Grid
-*/
-
-document
-  .getElementById(
-    "gridButton"
-  )
-  .addEventListener(
-    "click",
-    () => {
-
-      listMode = false;
-
-      document
-        .getElementById(
-          "gridButton"
-        )
-        .classList
-        .add("active");
-
-
-      document
-        .getElementById(
-          "listButton"
-        )
-        .classList
-        .remove("active");
-
-
-      renderFiles();
-
-    }
-  );
-
-
-/*
-    List
-*/
-
-document
-  .getElementById(
-    "listButton"
-  )
-  .addEventListener(
-    "click",
-    () => {
-
-      listMode = true;
-
-      document
-        .getElementById(
-          "listButton"
-        )
-        .classList
-        .add("active");
-
-
-      document
-        .getElementById(
-          "gridButton"
-        )
-        .classList
-        .remove("active");
-
-
-      renderFiles();
-
-    }
-  );
-
-
-/*
-    Header view button
-*/
-
-document
-  .getElementById(
-    "viewBtn"
-  )
-  .addEventListener(
-    "click",
-    () => {
-
-      document
-        .getElementById(
-          "listButton"
-        )
-        .click();
-
-    }
-  );
-
-
-/*
-    Mobile menu
-*/
-
-document
-  .getElementById(
-    "menuBtn"
-  )
-  .addEventListener(
-    "click",
-    () => {
-
-      document
-        .getElementById(
-          "sidebar"
-        )
-        .classList
-        .toggle("open");
-
-    }
-  );
-
-
-/*
-    Dark mode
-*/
-
-document
-  .getElementById(
-    "themeBtn"
-  )
-  .addEventListener(
-    "click",
-    () => {
-
-      document
-        .body
-        .classList
-        .toggle("dark");
-
-
-      localStorage.setItem(
-        "orilo-theme",
-        document
-          .body
-          .classList
-          .contains("dark")
-          ? "dark"
-          : "light"
-      );
-
-    }
-  );
-
-
-/*
-    Restore dark mode
-*/
-
-if (
-  localStorage.getItem(
-    "orilo-theme"
-  ) === "dark"
-) {
-
-  document
-    .body
-    .classList
-    .add("dark");
-
+    });
 }
 
 
-/*
-    START
+// ==============================
+// Mobile menu
+// ==============================
 
-*/
+const menuButton = document.getElementById("menuButton");
+const sidebar = document.querySelector(".sidebar");
 
-loadRepository();
+if (menuButton && sidebar) {
+    menuButton.addEventListener("click", () => {
+        sidebar.classList.toggle("open");
+    });
+}
+
+
+// ==============================
+// Dark mode
+// ==============================
+
+const darkModeButton = document.getElementById("darkMode");
+
+if (darkModeButton) {
+    darkModeButton.addEventListener("click", () => {
+
+        document.body.classList.toggle("dark-mode");
+
+        localStorage.setItem(
+            "darkMode",
+            document.body.classList.contains("dark-mode")
+                ? "true"
+                : "false"
+        );
+
+    });
+}
+
+
+if (localStorage.getItem("darkMode") === "true") {
+    document.body.classList.add("dark-mode");
+}
+
+
+// ==============================
+// Start
+// ==============================
+
+document.addEventListener("DOMContentLoaded", () => {
+    loadRepository();
+});
