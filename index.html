@@ -1,260 +1,54 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <title>oRIlo File Explorer</title>
-  <meta name="description" content="oRIlo GitHub File Explorer">
-
-  <link rel="stylesheet" href="style.css">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>oRIlo File Explorer</title>
+<link rel="stylesheet" href="style.css">
 </head>
-
 <body>
-
-<header class="topbar">
-
-  <div class="brand">
-    <div class="brand-icon">O</div>
-
-    <div>
-      <strong>oRIlo</strong>
-      <small>www0abdb-oss File oporu</small>
-    </div>
-  </div>
-
-  <div class="actions">
-    <button id="themeBtn">☾</button>
-    <button id="viewBtn">☷</button>
-    <button id="menuBtn" class="mobile">☰</button>
-  </div>
-
+<header class="top">
+  <button id="menu" class="icon mobile">☰</button>
+  <a class="brand" href="#"><i>o</i><span><b>oRIlo</b><small>www0abdb-oss File oporu</small></span></a>
+  <div class="topRight"><button id="theme" class="icon">◐</button><a class="repo" href="https://github.com/kaderlaib19-alt/m3allKanfor" target="_blank">GitHub ↗</a></div>
 </header>
 
-
-<div class="app">
-
-  <aside id="sidebar">
-
-    <div class="side-title">FILE EXPLORER</div>
-
-    <button class="nav active" data-type="all">
-      🏠 <span>All Files</span>
-      <em id="allCount">0</em>
-    </button>
-
-    <button class="nav" data-type="pdf">
-      📕 <span>PDF</span>
-      <em id="pdfCount">0</em>
-    </button>
-
-    <button class="nav" data-type="docx">
-      📘 <span>Documents</span>
-      <em id="docxCount">0</em>
-    </button>
-
-    <button class="nav" data-type="archive">
-      📦 <span>Archives</span>
-      <em id="archiveCount">0</em>
-    </button>
-
-    <button class="nav" data-type="image">
-      🖼️ <span>Images</span>
-      <em id="imageCount">0</em>
-    </button>
-
-    <button class="nav" data-type="video">
-      🎬 <span>Videos</span>
-      <em id="videoCount">0</em>
-    </button>
-
-    <button class="nav" data-type="audio">
-      🎵 <span>Audio</span>
-      <em id="audioCount">0</em>
-    </button>
-
-    <div class="separator"></div>
-
-    <button class="nav" data-type="recent">
-      🕘 <span>Recent</span>
-    </button>
-
-    <a
-      class="nav"
-      href="https://github.com/kaderlaib19-alt/m3allKanfor"
-      target="_blank">
-      ↗ <span>Open GitHub</span>
-    </a>
-
-  </aside>
-
-
-  <main>
-
-    <div class="breadcrumb">
-      GitHub
-      <b>›</b>
-      kaderlaib19-alt
-      <b>›</b>
-      m3allKanfor
-    </div>
-
-
-    <div class="toolbar">
-
-      <div class="search">
-
-        🔎
-
-        <input
-          id="searchInput"
-          type="search"
-          placeholder="Search files..."
-        >
-
-        <button id="clearSearch">×</button>
-
-      </div>
-
-
-      <select id="sortSelect">
-
-        <option value="name">
-          Name
-        </option>
-
-        <option value="size">
-          Size
-        </option>
-
-        <option value="type">
-          Type
-        </option>
-
-      </select>
-
-    </div>
-
-
-    <section class="hero">
-
-      <div>
-
-        <span>GITHUB FILE EXPLORER</span>
-
-        <h1>
-          Your files, organized.
-        </h1>
-
-        <p>
-          Live files loaded directly from the
-          m3allKanfor GitHub repository.
-        </p>
-
-      </div>
-
-      <div class="folder">
-        📂
-      </div>
-
-    </section>
-
-
-    <div class="section-header">
-
-      <div>
-
-        <h2 id="sectionTitle">
-          All Files
-        </h2>
-
-        <small id="fileStatus">
-          Loading...
-        </small>
-
-      </div>
-
-
-      <div>
-
-        <button
-          id="gridButton"
-          class="view active">
-          ▦ Grid
-        </button>
-
-        <button
-          id="listButton"
-          class="view">
-          ☷ List
-        </button>
-
-      </div>
-
-    </div>
-
-
-    <div
-      id="filesContainer"
-      class="files-grid">
-    </div>
-
-
-    <div
-      id="emptyMessage"
-      class="empty">
-
-      <div>📂</div>
-
-      <h3>
-        No files found
-      </h3>
-
-      <p>
-        Try another search or category.
-      </p>
-
-    </div>
-
-
-    <div
-      id="errorMessage"
-      class="error"
-      hidden>
-
-      <h3>
-        Unable to load files
-      </h3>
-
-      <p>
-        GitHub API could not be reached.
-      </p>
-
-      <button onclick="loadRepository()">
-        Retry
-      </button>
-
-    </div>
-
-  </main>
-
+<div class="layout">
+<aside id="side">
+  <h4>EXPLORER</h4>
+  <button class="filter active" data-filter="all">▦ <span>All Files</span></button>
+  <button class="filter" data-filter="pdf">📕 <span>PDF</span></button>
+  <button class="filter" data-filter="documents">📘 <span>Documents</span></button>
+  <button class="filter" data-filter="archives">📦 <span>Archives</span></button>
+  <button class="filter" data-filter="images">🖼️ <span>Images</span></button>
+  <button class="filter" data-filter="videos">🎬 <span>Videos</span></button>
+  <button class="filter" data-filter="audio">🎵 <span>Audio</span></button>
+</aside>
+
+<main>
+  <div class="crumb">GitHub › kaderlaib19-alt › <b>m3allKanfor</b></div>
+  <section class="hero">
+    <div><label>LIVE REPOSITORY</label><h1>Your files, organized.</h1><p>Real files from <b>kaderlaib19-alt/m3allKanfor</b>.</p></div>
+    <strong class="count" id="count">0 files</strong>
+  </section>
+
+  <div class="toolbar">
+    <div class="search">⌕<input id="search" placeholder="Search files..."><button id="clear">×</button></div>
+    <select id="sort"><option value="name">Name</option><option value="type">Type</option></select>
+    <button class="view active" data-view="grid">▦</button>
+    <button class="view" data-view="list">☷</button>
+  </div>
+
+  <div id="files" class="files grid"></div>
+</main>
 </div>
 
+<div id="viewer" hidden>
+  <div class="viewerTop"><b id="viewerName"></b><div><a id="download" target="_blank">Download</a><button id="close">×</button></div></div>
+  <div id="viewerBody"></div>
+</div>
 
-<footer>
-
-  <span>
-    oRIlo www0abdb-oss File oporu
-  </span>
-
-  <span>
-    m3allKanfor
-  </span>
-
-</footer>
-
-
+<footer>oRIlo File Explorer <span>Source: GitHub / m3allKanfor</span></footer>
 <script src="script.js"></script>
-
 </body>
 </html>
