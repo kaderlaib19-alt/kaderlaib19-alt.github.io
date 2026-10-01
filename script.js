@@ -1,99 +1,1045 @@
-const OWNER="kaderlaib19-alt",REPO="kaderlaib19-alt.github.io";
-const API=`https://api.github.com/repos/${OWNER}/${REPO}/contents/`;
-let files=[],filter="all",list=false;
+/*
+    REAL GITHUB FILE EXPLORER
 
-const $=id=>document.getElementById(id);
-const extMap={
- pdf:["pdf","📕"],docx:["docx","📘"],doc:["docx","📘"],rtf:["docx","📘"],
- rar:["archive","📦"],zip:["archive","📦"],7z:["archive","📦"],tar:["archive","📦"],gz:["archive","📦"],
- jpg:["image","🖼️"],jpeg:["image","🖼️"],png:["image","🖼️"],gif:["image","🖼️"],webp:["image","🖼️"],svg:["image","🖼️"],
- mp4:["video","🎬"],webm:["video","🎬"],mkv:["video","🎬"],mov:["video","🎬"],avi:["video","🎬"],
- mp3:["audio","🎵"],wav:["audio","🎵"],ogg:["audio","🎵"],m4a:["audio","🎵"],flac:["audio","🎵"]
+    Repository:
+
+    https://github.com/kaderlaib19-alt/m3allKanfor
+*/
+
+
+const OWNER = "kaderlaib19-alt";
+
+const REPOSITORY = "m3allKanfor";
+
+
+const API_URL =
+  `https://api.github.com/repos/${OWNER}/${REPOSITORY}/contents/`;
+
+
+let allFiles = [];
+
+let currentFilter = "all";
+
+let listMode = false;
+
+
+/*
+    File type detection
+*/
+
+const fileTypes = {
+
+  pdf: {
+    category: "pdf",
+    icon: "📕"
+  },
+
+  doc: {
+    category: "docx",
+    icon: "📘"
+  },
+
+  docx: {
+    category: "docx",
+    icon: "📘"
+  },
+
+  rar: {
+    category: "archive",
+    icon: "📦"
+  },
+
+  zip: {
+    category: "archive",
+    icon: "📦"
+  },
+
+  "7z": {
+    category: "archive",
+    icon: "📦"
+  },
+
+  tar: {
+    category: "archive",
+    icon: "📦"
+  },
+
+  gz: {
+    category: "archive",
+    icon: "📦"
+  },
+
+  jpg: {
+    category: "image",
+    icon: "🖼️"
+  },
+
+  jpeg: {
+    category: "image",
+    icon: "🖼️"
+  },
+
+  png: {
+    category: "image",
+    icon: "🖼️"
+  },
+
+  gif: {
+    category: "image",
+    icon: "🖼️"
+  },
+
+  webp: {
+    category: "image",
+    icon: "🖼️"
+  },
+
+  svg: {
+    category: "image",
+    icon: "🖼️"
+  },
+
+  mp4: {
+    category: "video",
+    icon: "🎬"
+  },
+
+  mkv: {
+    category: "video",
+    icon: "🎬"
+  },
+
+  webm: {
+    category: "video",
+    icon: "🎬"
+  },
+
+  avi: {
+    category: "video",
+    icon: "🎬"
+  },
+
+  mov: {
+    category: "video",
+    icon: "🎬"
+  },
+
+  mp3: {
+    category: "audio",
+    icon: "🎵"
+  },
+
+  wav: {
+    category: "audio",
+    icon: "🎵"
+  },
+
+  ogg: {
+    category: "audio",
+    icon: "🎵"
+  },
+
+  m4a: {
+    category: "audio",
+    icon: "🎵"
+  },
+
+  flac: {
+    category: "audio",
+    icon: "🎵"
+  }
+
 };
 
-function kind(name){
- const e=name.split(".").pop().toLowerCase();
- return extMap[e]||["file","📄"];
-}
-function formatSize(n){
- if(!n)return "—";
- const units=["B","KB","MB","GB"];let i=0;
- while(n>=1024&&i<units.length-1){n/=1024;i++}
- return `${n<10&&i>0?n.toFixed(1):Math.round(n)} ${units[i]}`;
-}
-function esc(s){return s.replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
 
-async function getDir(url,depth=0){
- const r=await fetch(url);
- if(!r.ok)throw new Error("GitHub API error");
- const data=await r.json();
- let out=[];
- for(const x of data){
-   if(x.type==="file")out.push(x);
-   else if(x.type==="dir"&&depth<3){
-     try{out=out.concat(await getDir(x.url,depth+1))}catch{}
-   }
- }
- return out;
+/*
+    Get extension
+*/
+
+function getExtension(filename) {
+
+  const parts =
+    filename
+      .toLowerCase()
+      .split(".");
+
+  return parts.length > 1
+    ? parts.pop()
+    : "";
+
 }
 
-async function loadFiles(){
- $("error").hidden=true;$("files").innerHTML="";$("status").textContent="Loading live GitHub data...";
- try{
-   files=await getDir(API);
-   render();
- }catch(e){
-   $("error").hidden=false;$("status").textContent="Could not load repository";
- }
+
+/*
+    Get file type
+*/
+
+function getFileType(filename) {
+
+  const extension =
+    getExtension(filename);
+
+  return fileTypes[extension] || {
+
+    category: "file",
+
+    icon: "📄"
+
+  };
+
 }
 
-function render(){
- let q=$("search").value.trim().toLowerCase();
- let arr=files.filter(f=>{
-   const [k]=kind(f.name);
-   const matchType=filter==="all"||filter===k||(filter==="recent"&&f.name);
-   return matchType&&(!q||f.name.toLowerCase().includes(q));
- });
- const s=$("sort").value;
- arr.sort((a,b)=>{
-   if(s==="name")return a.name.localeCompare(b.name);
-   if(s==="size")return (b.size||0)-(a.size||0);
-   if(s==="type")return kind(a.name)[0].localeCompare(kind(b.name)[0]);
-   return (b.git_url||"").localeCompare(a.git_url||"");
- });
- $("title").textContent={all:"All files",pdf:"PDF",docx:"Documents",archive:"Archives",image:"Images",video:"Videos",audio:"Audio",recent:"Recent"}[filter]||"Files";
- $("status").textContent=`${arr.length} file${arr.length===1?"":"s"} • Live from GitHub`;
- $("files").className=list?"list":"grid";
- $("files").innerHTML=arr.map(f=>{
-   const [k,ico]=kind(f.name), url=f.html_url||f.download_url;
-   return `<article class="card">
-     <div class="icon ${k}">${ico}</div>
-     <div><div class="name" title="${esc(f.name)}">${esc(f.name)}</div>
-     <div class="meta">${formatSize(f.size)} • ${k==="file"?"File":k.toUpperCase()}</div></div>
-     <div class="card-foot"><span class="type">${k.toUpperCase()}</span><a class="open" href="${url}" target="_blank" rel="noopener">Open</a></div>
-   </article>`;
- }).join("");
- $("empty").style.display=arr.length?"none":"block";
- updateCounts();
+
+/*
+    Format file size
+*/
+
+function formatSize(bytes) {
+
+  if (!bytes) {
+
+    return "Unknown size";
+
+  }
+
+
+  const units = [
+    "Bytes",
+    "KB",
+    "MB",
+    "GB"
+  ];
+
+
+  let size = bytes;
+
+  let unit = 0;
+
+
+  while (
+    size >= 1024 &&
+    unit < units.length - 1
+  ) {
+
+    size /= 1024;
+
+    unit++;
+
+  }
+
+
+  if (unit === 0) {
+
+    return `${size} ${units[unit]}`;
+
+  }
+
+
+  return `${size.toFixed(1)} ${units[unit]}`;
+
 }
 
-function updateCounts(){
- const c={all:files.length,pdf:0,docx:0,archive:0,image:0,video:0,audio:0};
- files.forEach(f=>c[kind(f.name)[0]]++);
- Object.keys(c).forEach(k=>{if($("c-"+k))$("c-"+k).textContent=c[k]});
- $("repoInfo").textContent=`${files.length} files • ${OWNER}/${REPO}`;
+
+/*
+    Escape HTML
+*/
+
+function escapeHTML(text) {
+
+  return text.replace(
+    /[&<>"']/g,
+    character => {
+
+      const map = {
+
+        "&": "&amp;",
+
+        "<": "&lt;",
+
+        ">": "&gt;",
+
+        '"': "&quot;",
+
+        "'": "&#039;"
+
+      };
+
+      return map[character];
+
+    }
+  );
+
 }
 
-document.querySelectorAll(".nav[data-type]").forEach(b=>b.onclick=()=>{
- document.querySelectorAll(".nav").forEach(x=>x.classList.remove("active"));b.classList.add("active");
- filter=b.dataset.type;render();$("sidebar").classList.remove("open");
-});
-$("search").oninput=render;$("sort").onchange=render;
-$("clear").onclick=()=>{$("search").value="";render();$("search").focus()};
-$("grid").onclick=()=>{list=false;$("grid").classList.add("active");$("list").classList.remove("active");render()};
-$("list").onclick=()=>{list=true;$("list").classList.add("active");$("grid").classList.remove("active");render()};
-$("layout").onclick=()=>$("list").click();
-$("menu").onclick=()=>$("sidebar").classList.toggle("open");
-$("theme").onclick=()=>{document.body.classList.toggle("dark");localStorage.theme=document.body.classList.contains("dark")?"dark":"light"};
-if(localStorage.theme==="dark")document.body.classList.add("dark");
-loadFiles();
+
+/*
+    Get all files from GitHub
+
+    This also enters folders recursively.
+*/
+
+async function getFiles(url) {
+
+  const response =
+    await fetch(url);
+
+
+  if (!response.ok) {
+
+    throw new Error(
+      `GitHub API Error: ${response.status}`
+    );
+
+  }
+
+
+  const items =
+    await response.json();
+
+
+  let result = [];
+
+
+  for (const item of items) {
+
+    if (item.type === "file") {
+
+      result.push(item);
+
+    }
+
+
+    else if (item.type === "dir") {
+
+      try {
+
+        const folderFiles =
+          await getFiles(item.url);
+
+        result =
+          result.concat(folderFiles);
+
+      }
+
+      catch (error) {
+
+        console.warn(
+          "Folder skipped:",
+          item.path
+        );
+
+      }
+
+    }
+
+  }
+
+
+  return result;
+
+}
+
+
+/*
+    Load repository
+*/
+
+async function loadRepository() {
+
+  const container =
+    document.getElementById(
+      "filesContainer"
+    );
+
+
+  const status =
+    document.getElementById(
+      "fileStatus"
+    );
+
+
+  const error =
+    document.getElementById(
+      "errorMessage"
+    );
+
+
+  error.hidden = true;
+
+
+  container.innerHTML = "";
+
+
+  status.textContent =
+    "Loading real GitHub files...";
+
+
+  try {
+
+    allFiles =
+      await getFiles(API_URL);
+
+
+    updateCounters();
+
+    renderFiles();
+
+  }
+
+  catch (errorObject) {
+
+    console.error(
+      errorObject
+    );
+
+
+    error.hidden = false;
+
+    status.textContent =
+      "Failed to load repository.";
+
+  }
+
+}
+
+
+/*
+    Update sidebar counters
+*/
+
+function updateCounters() {
+
+  const counters = {
+
+    all: allFiles.length,
+
+    pdf: 0,
+
+    docx: 0,
+
+    archive: 0,
+
+    image: 0,
+
+    video: 0,
+
+    audio: 0
+
+  };
+
+
+  allFiles.forEach(file => {
+
+    const type =
+      getFileType(file.name);
+
+
+    if (
+      counters[type.category]
+      !== undefined
+    ) {
+
+      counters[type.category]++;
+
+    }
+
+  });
+
+
+  document.getElementById(
+    "allCount"
+  ).textContent =
+    counters.all;
+
+
+  document.getElementById(
+    "pdfCount"
+  ).textContent =
+    counters.pdf;
+
+
+  document.getElementById(
+    "docxCount"
+  ).textContent =
+    counters.docx;
+
+
+  document.getElementById(
+    "archiveCount"
+  ).textContent =
+    counters.archive;
+
+
+  document.getElementById(
+    "imageCount"
+  ).textContent =
+    counters.image;
+
+
+  document.getElementById(
+    "videoCount"
+  ).textContent =
+    counters.video;
+
+
+  document.getElementById(
+    "audioCount"
+  ).textContent =
+    counters.audio;
+
+}
+
+
+/*
+    Render files
+*/
+
+function renderFiles() {
+
+  const container =
+    document.getElementById(
+      "filesContainer"
+    );
+
+
+  const empty =
+    document.getElementById(
+      "emptyMessage"
+    );
+
+
+  const search =
+    document.getElementById(
+      "searchInput"
+    );
+
+
+  const status =
+    document.getElementById(
+      "fileStatus"
+    );
+
+
+  const query =
+    search.value
+      .trim()
+      .toLowerCase();
+
+
+  let files =
+    allFiles.filter(file => {
+
+      const type =
+        getFileType(file.name);
+
+
+      const filterMatch =
+        currentFilter === "all" ||
+
+        type.category ===
+          currentFilter ||
+
+        (
+          currentFilter === "recent"
+          &&
+          file.name
+        );
+
+
+      const searchMatch =
+        !query ||
+
+        file.name
+          .toLowerCase()
+          .includes(query);
+
+
+      return (
+        filterMatch &&
+        searchMatch
+      );
+
+    });
+
+
+  /*
+      Sorting
+  */
+
+  const sort =
+    document.getElementById(
+      "sortSelect"
+    ).value;
+
+
+  if (sort === "name") {
+
+    files.sort(
+      (a,b) =>
+        a.name.localeCompare(
+          b.name
+        )
+    );
+
+  }
+
+
+  if (sort === "size") {
+
+    files.sort(
+      (a,b) =>
+        (b.size || 0) -
+        (a.size || 0)
+    );
+
+  }
+
+
+  if (sort === "type") {
+
+    files.sort(
+      (a,b) => {
+
+        const typeA =
+          getFileType(a.name)
+            .category;
+
+        const typeB =
+          getFileType(b.name)
+            .category;
+
+        return typeA.localeCompare(
+          typeB
+        );
+
+      }
+    );
+
+  }
+
+
+  /*
+      Update title
+  */
+
+  const titles = {
+
+    all: "All Files",
+
+    pdf: "PDF",
+
+    docx: "Documents",
+
+    archive: "Archives",
+
+    image: "Images",
+
+    video: "Videos",
+
+    audio: "Audio",
+
+    recent: "Recent"
+
+  };
+
+
+  document.getElementById(
+    "sectionTitle"
+  ).textContent =
+    titles[currentFilter];
+
+
+  status.textContent =
+    `${files.length} file(s) • Live GitHub data`;
+
+
+  /*
+      Grid/List
+  */
+
+  container.className =
+    listMode
+      ? "files-list"
+      : "files-grid";
+
+
+  /*
+      No files
+  */
+
+  if (!files.length) {
+
+    container.innerHTML = "";
+
+    empty.style.display =
+      "block";
+
+    return;
+
+  }
+
+
+  empty.style.display =
+    "none";
+
+
+  /*
+      Create cards
+  */
+
+  container.innerHTML =
+    files.map(file => {
+
+      const type =
+        getFileType(
+          file.name
+        );
+
+
+      const safeName =
+        escapeHTML(
+          file.name
+        );
+
+
+      const size =
+        formatSize(
+          file.size
+        );
+
+
+      return `
+
+        <article class="file-card">
+
+          <div
+            class="file-icon icon-${type.category}">
+            ${type.icon}
+          </div>
+
+
+          <div>
+
+            <div
+              class="file-name"
+              title="${safeName}">
+
+              ${safeName}
+
+            </div>
+
+
+            <div class="file-meta">
+
+              ${size}
+              •
+              ${type.category.toUpperCase()}
+
+            </div>
+
+          </div>
+
+
+          <div class="file-bottom">
+
+            <span class="file-type">
+
+              ${type.category.toUpperCase()}
+
+            </span>
+
+
+            <a
+              class="open-file"
+              href="${file.html_url}"
+              target="_blank"
+              rel="noopener">
+
+              Open
+
+            </a>
+
+          </div>
+
+        </article>
+
+      `;
+
+    }).join("");
+
+}
+
+
+/*
+    Sidebar
+*/
+
+document
+  .querySelectorAll(
+    ".nav[data-type]"
+  )
+  .forEach(button => {
+
+    button.addEventListener(
+      "click",
+      () => {
+
+        document
+          .querySelectorAll(
+            ".nav"
+          )
+          .forEach(item =>
+            item.classList
+              .remove("active")
+          );
+
+
+        button.classList
+          .add("active");
+
+
+        currentFilter =
+          button.dataset.type;
+
+
+        renderFiles();
+
+
+        document
+          .getElementById(
+            "sidebar"
+          )
+          .classList
+          .remove("open");
+
+      }
+    );
+
+  });
+
+
+/*
+    Search
+*/
+
+document
+  .getElementById(
+    "searchInput"
+  )
+  .addEventListener(
+    "input",
+    renderFiles
+  );
+
+
+/*
+    Clear search
+*/
+
+document
+  .getElementById(
+    "clearSearch"
+  )
+  .addEventListener(
+    "click",
+    () => {
+
+      document
+        .getElementById(
+          "searchInput"
+        ).value = "";
+
+
+      renderFiles();
+
+    }
+  );
+
+
+/*
+    Sort
+*/
+
+document
+  .getElementById(
+    "sortSelect"
+  )
+  .addEventListener(
+    "change",
+    renderFiles
+  );
+
+
+/*
+    Grid
+*/
+
+document
+  .getElementById(
+    "gridButton"
+  )
+  .addEventListener(
+    "click",
+    () => {
+
+      listMode = false;
+
+      document
+        .getElementById(
+          "gridButton"
+        )
+        .classList
+        .add("active");
+
+
+      document
+        .getElementById(
+          "listButton"
+        )
+        .classList
+        .remove("active");
+
+
+      renderFiles();
+
+    }
+  );
+
+
+/*
+    List
+*/
+
+document
+  .getElementById(
+    "listButton"
+  )
+  .addEventListener(
+    "click",
+    () => {
+
+      listMode = true;
+
+      document
+        .getElementById(
+          "listButton"
+        )
+        .classList
+        .add("active");
+
+
+      document
+        .getElementById(
+          "gridButton"
+        )
+        .classList
+        .remove("active");
+
+
+      renderFiles();
+
+    }
+  );
+
+
+/*
+    Header view button
+*/
+
+document
+  .getElementById(
+    "viewBtn"
+  )
+  .addEventListener(
+    "click",
+    () => {
+
+      document
+        .getElementById(
+          "listButton"
+        )
+        .click();
+
+    }
+  );
+
+
+/*
+    Mobile menu
+*/
+
+document
+  .getElementById(
+    "menuBtn"
+  )
+  .addEventListener(
+    "click",
+    () => {
+
+      document
+        .getElementById(
+          "sidebar"
+        )
+        .classList
+        .toggle("open");
+
+    }
+  );
+
+
+/*
+    Dark mode
+*/
+
+document
+  .getElementById(
+    "themeBtn"
+  )
+  .addEventListener(
+    "click",
+    () => {
+
+      document
+        .body
+        .classList
+        .toggle("dark");
+
+
+      localStorage.setItem(
+        "orilo-theme",
+        document
+          .body
+          .classList
+          .contains("dark")
+          ? "dark"
+          : "light"
+      );
+
+    }
+  );
+
+
+/*
+    Restore dark mode
+*/
+
+if (
+  localStorage.getItem(
+    "orilo-theme"
+  ) === "dark"
+) {
+
+  document
+    .body
+    .classList
+    .add("dark");
+
+}
+
+
+/*
+    START
+
+*/
+
+loadRepository();
