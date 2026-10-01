@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>oRIlo File Explorer</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-icon">▦</div>
+      <div>
+        <div class="brand-name">oRIlo File Explorer</div>
+        <div class="brand-sub">m3allKanfor</div>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <button id="backBtn" class="tool-btn" title="Back">←</button>
+      <button id="forwardBtn" class="tool-btn" title="Forward">→</button>
+      <button id="upBtn" class="tool-btn" title="Parent folder">↑</button>
+      <div class="address" id="address">Home</div>
+      <div class="search-wrap">
+        <span>⌕</span>
+        <input id="search" type="search" placeholder="Search files">
+      </div>
+    </div>
+  </header>
+
+  <main class="layout">
+    <aside class="sidebar">
+      <div class="side-title">Quick access</div>
+      <button class="side-item active" data-filter="all">⌂ <span>Home</span></button>
+      <button class="side-item" data-filter="image">▧ <span>Pictures</span></button>
+      <button class="side-item" data-filter="document">▤ <span>Documents</span></button>
+      <button class="side-item" data-filter="video">▶ <span>Videos</span></button>
+      <button class="side-item" data-filter="archive">▱ <span>Archives</span></button>
+      <button class="side-item" data-filter="audio">♫ <span>Audio</span></button>
+    </aside>
+
+    <section class="content">
+      <div class="content-head">
+        <div>
+          <h1 id="folderTitle">Home</h1>
+          <div id="count" class="muted">Loading...</div>
+        </div>
+        <div class="view-buttons">
+          <button id="gridBtn" class="view-btn active">▦</button>
+          <button id="listBtn" class="view-btn">☷</button>
+        </div>
+      </div>
+
+      <div id="crumbs" class="breadcrumbs"></div>
+      <div id="status" class="status"></div>
+      <div id="fileArea" class="file-area grid"></div>
+      <div id="empty" class="empty hidden">
+        <div class="empty-icon">□</div>
+        <h2>No files found</h2>
+        <p>There are no files matching your current selection.</p>
+      </div>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
